@@ -10,71 +10,46 @@ html,body{height:100%;background:#0a0a1a}
 body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:12px}
 canvas{display:block;margin:0 auto;touch-action:none}
 .wrap{
-  background: url('pondering.png') center/cover no-repeat;
-  border-radius:16px;
-  padding:12px 0 18px;
-  width:100%;
-  max-width:620px;
+  background:linear-gradient(135deg,#0a0a1a 0%,#1a0a2e 50%,#0a1a2e 100%);
+  border-radius:16px;padding:12px 0 18px;width:100%;max-width:620px;
 }
 .row{display:flex;gap:8px;justify-content:center;align-items:center;padding:7px 10px;flex-wrap:wrap}
 .grp{display:flex;border-radius:24px;border:0.5px solid rgba(255,255,255,0.15);overflow:hidden}
 .btn{
   font-size:14px;padding:10px 18px;
-  background:rgba(255,255,255,0.07);
-  color:rgba(255,255,255,0.5);
-  cursor:pointer;border:none;
-  -webkit-tap-highlight-color:transparent;
-  white-space:nowrap;
-  user-select:none;
+  background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);
+  cursor:pointer;border:none;-webkit-tap-highlight-color:transparent;
+  white-space:nowrap;user-select:none;
 }
-.btn:active{background:rgba(255,255,255,0.2)}
 .btn.on{background:rgba(255,255,255,0.9);color:#0a0a1a;font-weight:500}
 button.ctrl{
-  font-size:14px;padding:10px 22px;
-  border-radius:24px;
+  font-size:14px;padding:10px 22px;border-radius:24px;
   border:0.5px solid rgba(255,255,255,0.15);
-  background:rgba(255,255,255,0.07);
-  color:rgba(255,255,255,0.75);
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-  user-select:none;
+  background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.75);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;
 }
-button.ctrl:active{background:rgba(255,255,255,0.2)}
 .sl-row{display:flex;flex-direction:column;align-items:center;gap:5px}
 .sl-label{font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.06em;text-transform:uppercase}
 input[type=range]{
-  -webkit-appearance:none;
-  width:min(260px,72vw);
-  height:6px;
-  border-radius:3px;
-  background:rgba(255,255,255,0.15);
-  outline:none;
-  cursor:pointer;
+  -webkit-appearance:none;width:min(260px,72vw);height:6px;
+  border-radius:3px;background:rgba(255,255,255,0.15);outline:none;cursor:pointer;
 }
 input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none;
-  width:28px;height:28px;
-  border-radius:50%;
-  background:rgba(255,255,255,0.85);
-  cursor:pointer;
+  -webkit-appearance:none;width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,0.85);cursor:pointer;
 }
 input[type=range]::-moz-range-thumb{
-  width:28px;height:28px;
-  border-radius:50%;
-  background:rgba(255,255,255,0.85);
-  border:none;
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,0.85);border:none;
 }
 .bdg{
-  font-size:11px;color:rgba(255,255,255,0.4);
-  padding:4px 12px;border-radius:12px;
-  border:0.5px solid rgba(255,255,255,0.12);
-  background:rgba(255,255,255,0.06);
-  text-align:center;
+  font-size:11px;color:rgba(255,255,255,0.4);padding:4px 12px;
+  border-radius:12px;border:0.5px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.06);text-align:center;
 }
-.hint{
-  font-size:12px;color:rgba(255,255,255,0.35);
-  text-align:center;padding:0 0 4px;
-  transition:opacity 0.8s;
+#hint{
+  font-size:13px;color:rgba(255,255,255,0.5);text-align:center;
+  padding:4px 0 6px;transition:opacity 1s;
 }
 </style>
 </head>
@@ -87,10 +62,8 @@ input[type=range]::-moz-range-thumb{
       <button class="btn"    id="sStar">&#x26E4; Star</button>
     </div>
   </div>
-
-  <div class="hint" id="hint">tap anywhere to enable sound</div>
+  <div id="hint">tap here to enable sound &#x1F509;</div>
   <canvas id="c"></canvas>
-
   <div class="row">
     <button class="ctrl" id="pb">Pause</button>
     <div class="sl-row">
@@ -110,390 +83,374 @@ input[type=range]::-moz-range-thumb{
 </div>
 
 <script>
-// ---- canvas setup ----
-const cv  = document.getElementById('c');
-const ctx = cv.getContext('2d');
-let W, H, CX, CY;
+var cv  = document.getElementById('c');
+var c2d = cv.getContext('2d');
+var W, H, CX, CY;
 
 function resize() {
-  const maxW = Math.min(window.innerWidth - 24, 580);
+  var maxW = Math.min(window.innerWidth - 24, 580);
   cv.width  = maxW;
   cv.height = Math.round(maxW * 0.72);
   cv.style.width  = cv.width  + 'px';
   cv.style.height = cv.height + 'px';
-  getDims();
-  rebuild();
+  getDims(); rebuild();
 }
-function getDims() { W = cv.width; H = cv.height; CX = W/2; CY = H/2 - 2; }
-function sc(v)     { return v * (W / 560); }
+function getDims(){ W=cv.width; H=cv.height; CX=W/2; CY=H/2-2; }
+function sc(v){ return v*(W/560); }
 window.addEventListener('resize', resize);
 
-// ---- audio ----
-let AC = null;
+// ---- AUDIO ----
+// Single global context, created once inside a user gesture
+var AC = null;
+var audioUnlocked = false;
 
-function unlockAudio() {
-  if (AC) {
-    // If context got suspended (iOS background), resume it
-    if (AC.state === 'suspended') AC.resume();
-    return;
+function initAudio() {
+  if (audioUnlocked) return;
+  // Create context synchronously inside the gesture handler
+  if (!AC) {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
   }
-  AC = new (window.AudioContext || window.webkitAudioContext)();
-  // Play a zero-length silent buffer — required by iOS to truly unlock
-  const buf = AC.createBuffer(1, 1, 22050);
-  const src = AC.createBufferSource();
-  src.buffer = buf;
-  src.connect(AC.destination);
-  src.start(0);
-  AC.resume().then(function() {
-    document.getElementById('hint').style.opacity = '0';
-  });
+  // Resume synchronously (required for iOS)
+  AC.resume();
+  // Play a real (but inaudible) tone for 0.001s — iOS needs actual audio scheduled
+  var o = AC.createOscillator();
+  var g = AC.createGain();
+  g.gain.setValueAtTime(0.0001, AC.currentTime);
+  o.connect(g);
+  g.connect(AC.destination);
+  o.start(AC.currentTime);
+  o.stop(AC.currentTime + 0.001);
+  audioUnlocked = true;
+  var hint = document.getElementById('hint');
+  hint.style.opacity = '0';
+  setTimeout(function(){ hint.style.display='none'; }, 1100);
 }
 
 function chime(freq, isAnchor) {
-  if (!AC || AC.state !== 'running') return;
-  const t   = AC.currentTime;
-  const vol = isAnchor ? 0.26 : 0.17;
-  const dec = isAnchor ? 6.5  : 4.8;
-  [1, 2.756, 0.5].forEach(function(r, i) {
+  if (!AC || !audioUnlocked) return;
+  if (AC.state === 'suspended') AC.resume();
+  var t   = AC.currentTime;
+  var vol = isAnchor ? 0.22 : 0.14;
+  var dec = isAnchor ? 6.0  : 4.5;
+  var ratios = [1, 2.756, 0.5];
+  var gains  = [0.6, 0.28, isAnchor ? 0.32 : 0.16];
+  for (var i = 0; i < 3; i++) {
     var o = AC.createOscillator();
     var g = AC.createGain();
     o.type = 'sine';
-    o.frequency.value = freq * r;
-    if (i === 1) o.frequency.setTargetAtTime(freq * 2.756 * 0.998, t + 0.01, 0.4);
-    var gv = [0.6, 0.28, isAnchor ? 0.35 : 0.18][i];
+    o.frequency.value = freq * ratios[i];
+    if (i === 1) o.frequency.setTargetAtTime(freq*2.756*0.998, t+0.01, 0.4);
     g.gain.setValueAtTime(0.001, t);
-    g.gain.linearRampToValueAtTime(vol * gv, t + 0.014);
+    g.gain.linearRampToValueAtTime(vol * gains[i], t + 0.014);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
     o.connect(g);
     g.connect(AC.destination);
     o.start(t);
-    o.stop(t + dec + 0.5);
-  });
+    o.stop(t + dec + 0.2);
+  }
 }
 
-// ---- notes ----
-var RA = 432 / 440;
+// ---- NOTES ----
+var RA = 432/440;
 var FM_POLY = [
-  {name:'F3', freq:174.61*RA, color:'#ff4e6a', spd:0.0070, radius:8},
-  {name:'G3', freq:196.00*RA, color:'#ff8c42', spd:0.0088, radius:8},
-  {name:'G#3',freq:207.65*RA, color:'#ffd166', spd:0.0106, radius:7},
-  {name:'A#3',freq:233.08*RA, color:'#06d6a0', spd:0.0124, radius:7},
-  {name:'C4', freq:261.63*RA, color:'#118ab2', spd:0.0142, radius:8},
-  {name:'C#4',freq:277.18*RA, color:'#7b5ea7', spd:0.0160, radius:7},
-  {name:'D#4',freq:311.13*RA, color:'#e040fb', spd:0.0178, radius:7},
+  {name:'F3', freq:174.61*RA,color:'#ff4e6a',spd:0.0070,radius:8},
+  {name:'G3', freq:196.00*RA,color:'#ff8c42',spd:0.0088,radius:8},
+  {name:'G#3',freq:207.65*RA,color:'#ffd166',spd:0.0106,radius:7},
+  {name:'A#3',freq:233.08*RA,color:'#06d6a0',spd:0.0124,radius:7},
+  {name:'C4', freq:261.63*RA,color:'#118ab2',spd:0.0142,radius:8},
+  {name:'C#4',freq:277.18*RA,color:'#7b5ea7',spd:0.0160,radius:7},
+  {name:'D#4',freq:311.13*RA,color:'#e040fb',spd:0.0178,radius:7},
 ];
 var FM_WEIGHTED = [
-  {name:'F3', freq:174.61*RA, color:'#ff4e6a', spd:0.0200, radius:9, isAnchor:true},
-  {name:'C4', freq:261.63*RA, color:'#ff8c42', spd:0.0170, radius:8, isAnchor:true},
-  {name:'A#3',freq:233.08*RA, color:'#ffd166', spd:0.0140, radius:8},
-  {name:'G3', freq:196.00*RA, color:'#06d6a0', spd:0.0115, radius:7},
-  {name:'G#3',freq:207.65*RA, color:'#118ab2', spd:0.0095, radius:7},
-  {name:'D#4',freq:311.13*RA, color:'#7b5ea7', spd:0.0078, radius:7},
-  {name:'C#4',freq:277.18*RA, color:'#e040fb', spd:0.0062, radius:7},
+  {name:'F3', freq:174.61*RA,color:'#ff4e6a',spd:0.0200,radius:9,isAnchor:true},
+  {name:'C4', freq:261.63*RA,color:'#ff8c42',spd:0.0170,radius:8,isAnchor:true},
+  {name:'A#3',freq:233.08*RA,color:'#ffd166',spd:0.0140,radius:8},
+  {name:'G3', freq:196.00*RA,color:'#06d6a0',spd:0.0115,radius:7},
+  {name:'G#3',freq:207.65*RA,color:'#118ab2',spd:0.0095,radius:7},
+  {name:'D#4',freq:311.13*RA,color:'#7b5ea7',spd:0.0078,radius:7},
+  {name:'C#4',freq:277.18*RA,color:'#e040fb',spd:0.0062,radius:7},
 ];
 var AB_POLY = [
-  {name:'G#3',freq:207.65*RA, color:'#ff4e6a', spd:0.0070, radius:8},
-  {name:'A#3',freq:233.08*RA, color:'#ff8c42', spd:0.0088, radius:8},
-  {name:'C4', freq:261.63*RA, color:'#ffd166', spd:0.0106, radius:7},
-  {name:'C#4',freq:277.18*RA, color:'#06d6a0', spd:0.0124, radius:7},
-  {name:'D#4',freq:311.13*RA, color:'#118ab2', spd:0.0142, radius:8},
-  {name:'F3', freq:174.61*RA, color:'#7b5ea7', spd:0.0160, radius:7},
-  {name:'G3', freq:196.00*RA, color:'#e040fb', spd:0.0178, radius:7},
+  {name:'G#3',freq:207.65*RA,color:'#ff4e6a',spd:0.0070,radius:8},
+  {name:'A#3',freq:233.08*RA,color:'#ff8c42',spd:0.0088,radius:8},
+  {name:'C4', freq:261.63*RA,color:'#ffd166',spd:0.0106,radius:7},
+  {name:'C#4',freq:277.18*RA,color:'#06d6a0',spd:0.0124,radius:7},
+  {name:'D#4',freq:311.13*RA,color:'#118ab2',spd:0.0142,radius:8},
+  {name:'F3', freq:174.61*RA,color:'#7b5ea7',spd:0.0160,radius:7},
+  {name:'G3', freq:196.00*RA,color:'#e040fb',spd:0.0178,radius:7},
 ];
 var AB_WEIGHTED = [
-  {name:'G#3',freq:207.65*RA, color:'#ff4e6a', spd:0.0200, radius:9, isAnchor:true},
-  {name:'D#4',freq:311.13*RA, color:'#ff8c42', spd:0.0170, radius:8, isAnchor:true},
-  {name:'A#3',freq:233.08*RA, color:'#ffd166', spd:0.0140, radius:8},
-  {name:'C4', freq:261.63*RA, color:'#06d6a0', spd:0.0115, radius:7},
-  {name:'G3', freq:196.00*RA, color:'#118ab2', spd:0.0095, radius:7},
-  {name:'F3', freq:174.61*RA, color:'#7b5ea7', spd:0.0078, radius:7},
-  {name:'C#4',freq:277.18*RA, color:'#e040fb', spd:0.0062, radius:7},
+  {name:'G#3',freq:207.65*RA,color:'#ff4e6a',spd:0.0200,radius:9,isAnchor:true},
+  {name:'D#4',freq:311.13*RA,color:'#ff8c42',spd:0.0170,radius:8,isAnchor:true},
+  {name:'A#3',freq:233.08*RA,color:'#ffd166',spd:0.0140,radius:8},
+  {name:'C4', freq:261.63*RA,color:'#06d6a0',spd:0.0115,radius:7},
+  {name:'G3', freq:196.00*RA,color:'#118ab2',spd:0.0095,radius:7},
+  {name:'F3', freq:174.61*RA,color:'#7b5ea7',spd:0.0078,radius:7},
+  {name:'C#4',freq:277.18*RA,color:'#e040fb',spd:0.0062,radius:7},
 ];
-function getNotes() {
-  if (curShape === 'star') return curMode === 'poly' ? AB_POLY : AB_WEIGHTED;
-  return curMode === 'poly' ? FM_POLY : FM_WEIGHTED;
+function getNotes(){
+  if(curShape==='star') return curMode==='poly'?AB_POLY:AB_WEIGHTED;
+  return curMode==='poly'?FM_POLY:FM_WEIGHTED;
 }
 
-// ---- state ----
-var running  = true;
-var spdMult  = 1;
-var lt       = null;
-var curShape = 'infinity';
-var curMode  = 'weighted';
-var balls    = [];
+// ---- STATE ----
+var running=true, spdMult=1, lt=null;
+var curShape='infinity', curMode='weighted', balls=[];
 
-// ---- geometry ----
-function lemn(t) {
-  var A = sc(138), s = Math.sin(t), co = Math.cos(t), d = 1 + s*s;
-  return { x: CX + A*co/d, y: CY + A*s*co/d };
+// ---- GEOMETRY ----
+function lemn(t){
+  var A=sc(138),s=Math.sin(t),co=Math.cos(t),d=1+s*s;
+  return{x:CX+A*co/d, y:CY+A*s*co/d};
 }
-function nearCross(t) {
-  var n = ((t % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
-  return n < 0.18 || n > Math.PI*2 - 0.18 || (n > Math.PI - 0.18 && n < Math.PI + 0.18);
+function nearCross(t){
+  var n=((t%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+  return n<0.18||n>Math.PI*2-0.18||(n>Math.PI-0.18&&n<Math.PI+0.18);
 }
-
-function getTriPts() {
-  var R = sc(145);
-  return [
-    {x: CX,                            y: CY - R},
-    {x: CX + R*Math.sin(2*Math.PI/3), y: CY - R*Math.cos(2*Math.PI/3)},
-    {x: CX + R*Math.sin(4*Math.PI/3), y: CY - R*Math.cos(4*Math.PI/3)},
+function getTriPts(){
+  var R=sc(145);
+  return[
+    {x:CX, y:CY-R},
+    {x:CX+R*Math.sin(2*Math.PI/3), y:CY-R*Math.cos(2*Math.PI/3)},
+    {x:CX+R*Math.sin(4*Math.PI/3), y:CY-R*Math.cos(4*Math.PI/3)},
   ];
 }
-function triPos(u) {
-  var tp = getTriPts(), uu = ((u%1)+1)%1, seg = uu*3;
-  var s = Math.floor(seg), f = seg - s, a = tp[s], b = tp[(s+1)%3];
-  return { x: a.x+(b.x-a.x)*f, y: a.y+(b.y-a.y)*f };
+function triPos(u){
+  var tp=getTriPts(),uu=((u%1)+1)%1,seg=uu*3,s=Math.floor(seg),f=seg-s,a=tp[s],b=tp[(s+1)%3];
+  return{x:a.x+(b.x-a.x)*f, y:a.y+(b.y-a.y)*f};
 }
-function triCorner(u) {
-  var uu = ((u%1)+1)%1, seg = uu*3, f = seg - Math.floor(seg);
-  if (f < 0.02) return Math.floor(seg) % 3;
-  if (f > 0.98) return (Math.floor(seg)+1) % 3;
+function triCorner(u){
+  var uu=((u%1)+1)%1,seg=uu*3,f=seg-Math.floor(seg);
+  if(f<0.02) return Math.floor(seg)%3;
+  if(f>0.98) return (Math.floor(seg)+1)%3;
   return -1;
 }
-
-function getPentTips() {
-  var R = sc(148), tips = [];
-  for (var i = 0; i < 5; i++) {
-    var a = -Math.PI/2 + i * 2*Math.PI/5;
-    tips.push({ x: CX + R*Math.cos(a), y: CY + R*Math.sin(a) });
+function getPentTips(){
+  var R=sc(148),tips=[];
+  for(var i=0;i<5;i++){
+    var a=-Math.PI/2+i*2*Math.PI/5;
+    tips.push({x:CX+R*Math.cos(a), y:CY+R*Math.sin(a)});
   }
   return tips;
 }
-function getPentLines() {
-  var tips = getPentTips(), ord = [0,2,4,1,3], lines = [];
-  for (var i = 0; i < 5; i++) lines.push({ a: tips[ord[i]], b: tips[ord[(i+1)%5]] });
+function getPentLines(){
+  var tips=getPentTips(),ord=[0,2,4,1,3],lines=[];
+  for(var i=0;i<5;i++) lines.push({a:tips[ord[i]],b:tips[ord[(i+1)%5]]});
   return lines;
 }
-function pentPos(u) {
-  var lines = getPentLines(), uu = ((u%1)+1)%1, seg = uu*5;
-  var s = Math.floor(seg)%5, f = seg - Math.floor(seg), L = lines[s];
-  return { x: L.a.x+(L.b.x-L.a.x)*f, y: L.a.y+(L.b.y-L.a.y)*f };
+function pentPos(u){
+  var lines=getPentLines(),uu=((u%1)+1)%1,seg=uu*5,s=Math.floor(seg)%5,f=seg-Math.floor(seg),L=lines[s];
+  return{x:L.a.x+(L.b.x-L.a.x)*f, y:L.a.y+(L.b.y-L.a.y)*f};
 }
-function pentTipId(u) {
-  var uu = ((u%1)+1)%1, seg = uu*5, s = Math.floor(seg)%5, f = seg - Math.floor(seg);
-  return f < 0.04 ? s : -1;
+function pentTipId(u){
+  var uu=((u%1)+1)%1,seg=uu*5,s=Math.floor(seg)%5,f=seg-Math.floor(seg);
+  return f<0.04?s:-1;
 }
 
-// ---- balls ----
-function makeBalls(src) {
-  var scale = W / 560;
-  return src.map(function(n) {
-    return {
-      name: n.name, freq: n.freq, color: n.color,
-      spd: n.spd, isAnchor: n.isAnchor || false,
-      r: Math.max(5, Math.round(n.radius * scale)),
-      t: 0, trail: [], glow: 0, labelAlpha: 0, lastPt: -1
+// ---- BALLS ----
+function makeBalls(src){
+  var scale=W/560;
+  return src.map(function(n){
+    return{
+      name:n.name,freq:n.freq,color:n.color,spd:n.spd,
+      isAnchor:n.isAnchor||false,
+      r:Math.max(5,Math.round(n.radius*scale)),
+      t:0,trail:[],glow:0,labelAlpha:0,lastPt:-1
     };
   });
 }
-function rebuild() { getDims(); balls = makeBalls(getNotes()); lt = null; }
+function rebuild(){ getDims(); balls=makeBalls(getNotes()); lt=null; }
 
-// ---- UI handlers (no inline onclick — avoids iOS issues) ----
-function setShape(s) {
-  curShape = s;
-  document.getElementById('sInf').classList.toggle('on',  s === 'infinity');
-  document.getElementById('sTri').classList.toggle('on',  s === 'triangle');
-  document.getElementById('sStar').classList.toggle('on', s === 'star');
-  updateBadge();
-  rebuild();
+// ---- UI ----
+function setShape(s){
+  curShape=s;
+  document.getElementById('sInf').classList.toggle('on',  s==='infinity');
+  document.getElementById('sTri').classList.toggle('on',  s==='triangle');
+  document.getElementById('sStar').classList.toggle('on', s==='star');
+  updateBadge(); rebuild();
 }
-function setMode(m) {
-  curMode = m;
-  document.getElementById('tPoly').classList.toggle('on',   m === 'poly');
-  document.getElementById('tWeight').classList.toggle('on', m === 'weighted');
-  updateBadge();
-  rebuild();
+function setMode(m){
+  curMode=m;
+  document.getElementById('tPoly').classList.toggle('on',   m==='poly');
+  document.getElementById('tWeight').classList.toggle('on', m==='weighted');
+  updateBadge(); rebuild();
 }
-function updateBadge() {
-  var sh  = curShape === 'infinity' ? '∞' : curShape === 'triangle' ? '△' : '⛤';
-  var key = curShape === 'star' ? 'G# major' : 'F minor';
-  var mo  = curMode  === 'poly' ? 'polyrhythm' : 'root weighted';
-  document.getElementById('bdg').textContent = sh + ' · ' + key + ' · 432 Hz · ' + mo;
+function updateBadge(){
+  var sh  = curShape==='infinity'?'∞':curShape==='triangle'?'△':'⛤';
+  var key = curShape==='star'?'G# major':'F minor';
+  var mo  = curMode==='poly'?'polyrhythm':'root weighted';
+  document.getElementById('bdg').textContent = sh+' · '+key+' · 432 Hz · '+mo;
 }
 
-// Attach button listeners properly (works on both iOS and Android)
-function addTap(id, fn) {
+// Wire every interactive element with touchstart+click
+// touchstart fires first on mobile and is synchronous — perfect for AudioContext
+function wire(id, action) {
   var el = document.getElementById(id);
-  var tapped = false;
-  el.addEventListener('touchend', function(e) {
-    e.preventDefault();   // stop ghost click
-    tapped = true;
-    unlockAudio();
-    fn();
-  }, { passive: false });
+  var didTouch = false;
+  el.addEventListener('touchstart', function(e) {
+    didTouch = true;
+    initAudio();   // must be called synchronously in touchstart
+    action();
+  }, { passive: true });
   el.addEventListener('click', function() {
-    if (tapped) { tapped = false; return; } // already handled by touchend
-    unlockAudio();
-    fn();
+    if (didTouch) { didTouch = false; return; } // suppress ghost click
+    initAudio();
+    action();
   });
 }
 
-addTap('sInf',    function() { setShape('infinity'); });
-addTap('sTri',    function() { setShape('triangle'); });
-addTap('sStar',   function() { setShape('star'); });
-addTap('tPoly',   function() { setMode('poly'); });
-addTap('tWeight', function() { setMode('weighted'); });
-addTap('pb',      function() {
-  running = !running;
-  document.getElementById('pb').textContent = running ? 'Pause' : 'Play';
-  lt = null;
+wire('sInf',    function(){ setShape('infinity'); });
+wire('sTri',    function(){ setShape('triangle'); });
+wire('sStar',   function(){ setShape('star'); });
+wire('tPoly',   function(){ setMode('poly'); });
+wire('tWeight', function(){ setMode('weighted'); });
+wire('pb',      function(){
+  running=!running;
+  document.getElementById('pb').textContent=running?'Pause':'Play';
+  lt=null;
 });
 
-document.getElementById('spd').addEventListener('input', function() {
-  spdMult = +this.value;
-});
+// Also wire the hint div and canvas as fallback tap targets
+wire('hint', function(){});
+cv.addEventListener('touchstart', function(){ initAudio(); }, { passive: true });
+cv.addEventListener('click',      function(){ initAudio(); });
 
-// Unlock on first touch anywhere
-document.addEventListener('touchstart', function() { unlockAudio(); }, { passive: true, once: true });
+document.getElementById('spd').addEventListener('input', function(){ spdMult=+this.value; });
 
-// ---- drawing ----
-function drawInfinity() {
-  ctx.save(); ctx.beginPath();
-  for (var i = 0; i <= 400; i++) {
-    var p = lemn((i/400)*Math.PI*2);
-    i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+// ---- DRAW ----
+function drawInfinity(){
+  c2d.save(); c2d.beginPath();
+  for(var i=0;i<=400;i++){
+    var p=lemn((i/400)*Math.PI*2);
+    i===0?c2d.moveTo(p.x,p.y):c2d.lineTo(p.x,p.y);
   }
-  ctx.strokeStyle = 'rgba(180,180,255,0.28)';
-  ctx.lineWidth = sc(2); ctx.stroke(); ctx.restore();
-  [0, Math.PI].forEach(function(ct) {
-    var p = lemn(ct), r = sc(20);
-    var rg = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r);
-    rg.addColorStop(0,'rgba(255,255,255,0.14)'); rg.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.fill();
+  c2d.strokeStyle='rgba(180,180,255,0.28)';c2d.lineWidth=sc(2);c2d.stroke();c2d.restore();
+  [0,Math.PI].forEach(function(ct){
+    var p=lemn(ct),r=sc(20);
+    var rg=c2d.createRadialGradient(p.x,p.y,0,p.x,p.y,r);
+    rg.addColorStop(0,'rgba(255,255,255,0.14)');rg.addColorStop(1,'rgba(0,0,0,0)');
+    c2d.fillStyle=rg;c2d.beginPath();c2d.arc(p.x,p.y,r,0,Math.PI*2);c2d.fill();
+  });
+}
+function drawTriangle(){
+  var tp=getTriPts();
+  c2d.save();c2d.beginPath();
+  tp.forEach(function(p,i){i===0?c2d.moveTo(p.x,p.y):c2d.lineTo(p.x,p.y);});
+  c2d.closePath();
+  c2d.strokeStyle='rgba(180,180,255,0.28)';c2d.lineWidth=sc(2.5);c2d.lineJoin='round';c2d.stroke();c2d.restore();
+  tp.forEach(function(p){
+    var r=sc(20);
+    var rg=c2d.createRadialGradient(p.x,p.y,0,p.x,p.y,r);
+    rg.addColorStop(0,'rgba(255,255,255,0.18)');rg.addColorStop(1,'rgba(0,0,0,0)');
+    c2d.fillStyle=rg;c2d.beginPath();c2d.arc(p.x,p.y,r,0,Math.PI*2);c2d.fill();
+    c2d.beginPath();c2d.arc(p.x,p.y,sc(4),0,Math.PI*2);
+    c2d.fillStyle='rgba(255,255,255,0.55)';c2d.fill();
+  });
+}
+function drawStar(){
+  var lines=getPentLines(),tips=getPentTips();
+  c2d.save();c2d.strokeStyle='rgba(210,195,140,0.38)';c2d.lineWidth=sc(2);c2d.lineJoin='round';
+  lines.forEach(function(L){c2d.beginPath();c2d.moveTo(L.a.x,L.a.y);c2d.lineTo(L.b.x,L.b.y);c2d.stroke();});
+  c2d.restore();
+  tips.forEach(function(p){
+    var r=sc(22);
+    var rg=c2d.createRadialGradient(p.x,p.y,0,p.x,p.y,r);
+    rg.addColorStop(0,'rgba(255,235,140,0.28)');rg.addColorStop(1,'rgba(0,0,0,0)');
+    c2d.fillStyle=rg;c2d.beginPath();c2d.arc(p.x,p.y,r,0,Math.PI*2);c2d.fill();
+    c2d.beginPath();c2d.arc(p.x,p.y,sc(4),0,Math.PI*2);
+    c2d.fillStyle='rgba(255,230,130,0.75)';c2d.fill();
+  });
+}
+function drawLegend(){
+  if(curMode!=='weighted') return;
+  var isStar=curShape==='star';
+  var items=isStar
+    ?[{label:'G# — root',color:'#ff4e6a'},{label:'D# — fifth',color:'#ff8c42'},{label:'C# — slow',color:'#e040fb'}]
+    :[{label:'F  — root',color:'#ff4e6a'},{label:'C  — fifth',color:'#ff8c42'},{label:'C# — slow',color:'#e040fb'}];
+  var fs=Math.max(10,sc(11));
+  items.forEach(function(item,i){
+    var x=sc(18),y=H-sc(52)+i*sc(17);
+    c2d.beginPath();c2d.arc(x+sc(5),y,sc(4),0,Math.PI*2);c2d.fillStyle=item.color;c2d.fill();
+    c2d.font=fs+'px sans-serif';c2d.fillStyle='rgba(200,200,220,0.6)';c2d.textAlign='left';
+    c2d.fillText(item.label,x+sc(14),y+sc(4));
   });
 }
 
-function drawTriangle() {
-  var tp = getTriPts();
-  ctx.save(); ctx.beginPath();
-  tp.forEach(function(p,i){ i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y); });
-  ctx.closePath();
-  ctx.strokeStyle = 'rgba(180,180,255,0.28)';
-  ctx.lineWidth = sc(2.5); ctx.lineJoin = 'round'; ctx.stroke(); ctx.restore();
-  tp.forEach(function(p) {
-    var r = sc(20);
-    var rg = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r);
-    rg.addColorStop(0,'rgba(255,255,255,0.18)'); rg.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(p.x,p.y,sc(4),0,Math.PI*2);
-    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fill();
-  });
-}
-
-function drawStar() {
-  var lines = getPentLines(), tips = getPentTips();
-  ctx.save();
-  ctx.strokeStyle = 'rgba(210,195,140,0.38)';
-  ctx.lineWidth = sc(2); ctx.lineJoin = 'round';
-  lines.forEach(function(L) {
-    ctx.beginPath(); ctx.moveTo(L.a.x,L.a.y); ctx.lineTo(L.b.x,L.b.y); ctx.stroke();
-  });
-  ctx.restore();
-  tips.forEach(function(p) {
-    var r = sc(22);
-    var rg = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r);
-    rg.addColorStop(0,'rgba(255,235,140,0.28)'); rg.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(p.x,p.y,sc(4),0,Math.PI*2);
-    ctx.fillStyle = 'rgba(255,230,130,0.75)'; ctx.fill();
-  });
-}
-
-function drawLegend() {
-  if (curMode !== 'weighted') return;
-  var isStar = curShape === 'star';
-  var items = isStar
-    ? [{label:'G# — root',color:'#ff4e6a'},{label:'D# — fifth',color:'#ff8c42'},{label:'C# — slow',color:'#e040fb'}]
-    : [{label:'F  — root',color:'#ff4e6a'},{label:'C  — fifth',color:'#ff8c42'},{label:'C# — slow',color:'#e040fb'}];
-  var fs = Math.max(10, sc(11));
-  items.forEach(function(item, i) {
-    var x = sc(18), y = H - sc(52) + i * sc(17);
-    ctx.beginPath(); ctx.arc(x+sc(5), y, sc(4), 0, Math.PI*2);
-    ctx.fillStyle = item.color; ctx.fill();
-    ctx.font = fs + 'px sans-serif';
-    ctx.fillStyle = 'rgba(200,200,220,0.6)'; ctx.textAlign = 'left';
-    ctx.fillText(item.label, x+sc(14), y+sc(4));
-  });
-}
-
-// ---- animation loop ----
-function frame(ts) {
-  if (!running) { requestAnimationFrame(frame); return; }
+// ---- LOOP ----
+function frame(ts){
+  if(!running){requestAnimationFrame(frame);return;}
   getDims();
-  var dt = lt ? Math.min((ts - lt)/1000, 0.05) : 0.016; lt = ts;
-  ctx.clearRect(0, 0, W, H);
+  var dt=lt?Math.min((ts-lt)/1000,0.05):0.016; lt=ts;
+  c2d.clearRect(0,0,W,H);
 
-  var cc = curShape==='star' ? 'rgba(255,200,60,0.06)' : curMode==='weighted' ? 'rgba(255,80,80,0.06)' : 'rgba(160,130,255,0.07)';
-  var cg = ctx.createRadialGradient(CX,CY,0,CX,CY,sc(110));
-  cg.addColorStop(0, cc); cg.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = cg; ctx.fillRect(0,0,W,H);
+  var cc=curShape==='star'?'rgba(255,200,60,0.06)':curMode==='weighted'?'rgba(255,80,80,0.06)':'rgba(160,130,255,0.07)';
+  var cg=c2d.createRadialGradient(CX,CY,0,CX,CY,sc(110));
+  cg.addColorStop(0,cc);cg.addColorStop(1,'rgba(0,0,0,0)');
+  c2d.fillStyle=cg;c2d.fillRect(0,0,W,H);
 
-  if      (curShape === 'infinity') drawInfinity();
-  else if (curShape === 'triangle') drawTriangle();
-  else                              drawStar();
+  if(curShape==='infinity')      drawInfinity();
+  else if(curShape==='triangle') drawTriangle();
+  else                           drawStar();
 
-  balls.forEach(function(ball) {
-    var pos, crossed = false;
+  balls.forEach(function(ball){
+    var pos,crossed=false;
 
-    if (curShape === 'infinity') {
-      var prev = ball.t;
-      ball.t += ball.spd * spdMult * dt * 60;
-      pos = lemn(ball.t);
-      crossed = nearCross(ball.t) && !nearCross(prev);
+    if(curShape==='infinity'){
+      var prev=ball.t;
+      ball.t+=ball.spd*spdMult*dt*60;
+      pos=lemn(ball.t);
+      crossed=nearCross(ball.t)&&!nearCross(prev);
 
-    } else if (curShape === 'triangle') {
-      ball.t = ((ball.t + ball.spd * spdMult * dt * 60 * (1/(Math.PI*2))) + 1) % 1;
-      pos = triPos(ball.t);
-      var ci = triCorner(ball.t);
-      if (ci !== -1 && ci !== ball.lastPt) { ball.lastPt = ci; crossed = true; }
-      if (ci === -1) ball.lastPt = -1;
+    } else if(curShape==='triangle'){
+      ball.t=((ball.t+ball.spd*spdMult*dt*60*(1/(Math.PI*2)))+1)%1;
+      pos=triPos(ball.t);
+      var ci=triCorner(ball.t);
+      if(ci!==-1&&ci!==ball.lastPt){ball.lastPt=ci;crossed=true;}
+      if(ci===-1) ball.lastPt=-1;
 
     } else {
-      ball.t = ((ball.t + ball.spd * spdMult * dt * 60 * (1/(Math.PI*2))) + 1) % 1;
-      pos = pentPos(ball.t);
-      var ti = pentTipId(ball.t);
-      if (ti !== -1 && ti !== ball.lastPt) { ball.lastPt = ti; crossed = true; }
-      if (ti === -1) ball.lastPt = -1;
+      ball.t=((ball.t+ball.spd*spdMult*dt*60*(1/(Math.PI*2)))+1)%1;
+      pos=pentPos(ball.t);
+      var ti=pentTipId(ball.t);
+      if(ti!==-1&&ti!==ball.lastPt){ball.lastPt=ti;crossed=true;}
+      if(ti===-1) ball.lastPt=-1;
     }
 
-    // trail
-    ball.trail.push({x: pos.x, y: pos.y});
-    if (ball.trail.length > 24) ball.trail.shift();
-    ball.trail.forEach(function(pt, j) {
-      var a = (j / ball.trail.length) * (ball.isAnchor ? 0.5 : 0.38);
-      ctx.beginPath(); ctx.arc(pt.x, pt.y, ball.r*0.42, 0, Math.PI*2);
-      ctx.fillStyle = ball.color + Math.floor(a*255).toString(16).padStart(2,'0'); ctx.fill();
+    ball.trail.push({x:pos.x,y:pos.y});
+    if(ball.trail.length>24) ball.trail.shift();
+    ball.trail.forEach(function(pt,j){
+      var a=(j/ball.trail.length)*(ball.isAnchor?0.5:0.38);
+      c2d.beginPath();c2d.arc(pt.x,pt.y,ball.r*0.42,0,Math.PI*2);
+      c2d.fillStyle=ball.color+Math.floor(a*255).toString(16).padStart(2,'0');c2d.fill();
     });
 
-    if (crossed) { ball.glow = 1; ball.labelAlpha = 1; chime(ball.freq, ball.isAnchor); }
-    ball.glow       = Math.max(0, ball.glow       - dt * 2.2);
-    ball.labelAlpha = Math.max(0, ball.labelAlpha - dt * 0.8);
+    if(crossed){ball.glow=1;ball.labelAlpha=1;chime(ball.freq,ball.isAnchor);}
+    ball.glow      =Math.max(0,ball.glow      -dt*2.2);
+    ball.labelAlpha=Math.max(0,ball.labelAlpha-dt*0.8);
 
-    if (ball.glow > 0) {
-      var gr_r = ball.r * (ball.isAnchor ? 4.5 : 3);
-      var gr = ctx.createRadialGradient(pos.x,pos.y,ball.r*0.4,pos.x,pos.y,gr_r);
-      gr.addColorStop(0, ball.color + Math.floor(ball.glow*170).toString(16).padStart(2,'0'));
-      gr.addColorStop(1, ball.color + '00');
-      ctx.beginPath(); ctx.arc(pos.x,pos.y,gr_r,0,Math.PI*2); ctx.fillStyle=gr; ctx.fill();
+    if(ball.glow>0){
+      var gr_r=ball.r*(ball.isAnchor?4.5:3);
+      var gr=c2d.createRadialGradient(pos.x,pos.y,ball.r*0.4,pos.x,pos.y,gr_r);
+      gr.addColorStop(0,ball.color+Math.floor(ball.glow*170).toString(16).padStart(2,'0'));
+      gr.addColorStop(1,ball.color+'00');
+      c2d.beginPath();c2d.arc(pos.x,pos.y,gr_r,0,Math.PI*2);c2d.fillStyle=gr;c2d.fill();
     }
 
-    var bg = ctx.createRadialGradient(pos.x-ball.r*0.3, pos.y-ball.r*0.35, 0.5, pos.x, pos.y, ball.r);
-    bg.addColorStop(0,'#fff'); bg.addColorStop(0.3, ball.color); bg.addColorStop(1, ball.color+'88');
-    ctx.beginPath(); ctx.arc(pos.x, pos.y, ball.r, 0, Math.PI*2); ctx.fillStyle = bg; ctx.fill();
+    var bg=c2d.createRadialGradient(pos.x-ball.r*0.3,pos.y-ball.r*0.35,0.5,pos.x,pos.y,ball.r);
+    bg.addColorStop(0,'#fff');bg.addColorStop(0.3,ball.color);bg.addColorStop(1,ball.color+'88');
+    c2d.beginPath();c2d.arc(pos.x,pos.y,ball.r,0,Math.PI*2);c2d.fillStyle=bg;c2d.fill();
 
-    if (ball.isAnchor) {
-      ctx.beginPath(); ctx.arc(pos.x, pos.y, ball.r+sc(3), 0, Math.PI*2);
-      ctx.strokeStyle = ball.color+'55'; ctx.lineWidth = 1; ctx.stroke();
+    if(ball.isAnchor){
+      c2d.beginPath();c2d.arc(pos.x,pos.y,ball.r+sc(3),0,Math.PI*2);
+      c2d.strokeStyle=ball.color+'55';c2d.lineWidth=1;c2d.stroke();
     }
 
-    if (ball.labelAlpha > 0) {
-      var fs = Math.max(10, sc(ball.isAnchor ? 13 : 11));
-      ctx.save(); ctx.globalAlpha = ball.labelAlpha;
-      ctx.font = '500 ' + fs + 'px sans-serif';
-      ctx.fillStyle = ball.color; ctx.textAlign = 'center';
-      ctx.fillText(ball.name, pos.x, pos.y - ball.r - sc(6) - (1-ball.labelAlpha)*sc(14));
-      ctx.restore();
+    if(ball.labelAlpha>0){
+      var fs=Math.max(10,sc(ball.isAnchor?13:11));
+      c2d.save();c2d.globalAlpha=ball.labelAlpha;
+      c2d.font='500 '+fs+'px sans-serif';
+      c2d.fillStyle=ball.color;c2d.textAlign='center';
+      c2d.fillText(ball.name,pos.x,pos.y-ball.r-sc(6)-(1-ball.labelAlpha)*sc(14));
+      c2d.restore();
     }
   });
 
@@ -501,7 +458,7 @@ function frame(ts) {
   requestAnimationFrame(frame);
 }
 
-// ---- init ----
+// ---- START ----
 resize();
 setShape('infinity');
 setMode('weighted');
