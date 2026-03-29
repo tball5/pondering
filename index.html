@@ -1,14 +1,22 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polyrhythm Instrument</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0a0a1a}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:12px}
 canvas{display:block;margin:0 auto;touch-action:none}
 .wrap{
-  background: url('pondering.png') center/cover no-repeat;
-  border-radius:12px;
-  padding:10px 0 16px;
+  background:linear-gradient(135deg,#0a0a1a 0%,#1a0a2e 50%,#0a1a2e 100%);
+  border-radius:16px;
+  padding:12px 0 18px;
   width:100%;
+  max-width:620px;
 }
-.row{display:flex;gap:8px;justify-content:center;align-items:center;padding:7px 8px;flex-wrap:wrap}
+.row{display:flex;gap:8px;justify-content:center;align-items:center;padding:7px 10px;flex-wrap:wrap}
 .grp{display:flex;border-radius:24px;border:0.5px solid rgba(255,255,255,0.15);overflow:hidden}
 .btn{
   font-size:14px;padding:9px 18px;
@@ -21,7 +29,7 @@ canvas{display:block;margin:0 auto;touch-action:none}
 .btn:hover{background:rgba(255,255,255,0.13)}
 .btn.on{background:rgba(255,255,255,0.9);color:#0a0a1a;font-weight:500}
 button.ctrl{
-  font-size:14px;padding:9px 20px;
+  font-size:14px;padding:9px 22px;
   border-radius:24px;
   border:0.5px solid rgba(255,255,255,0.15);
   background:rgba(255,255,255,0.07);
@@ -30,11 +38,11 @@ button.ctrl{
   -webkit-tap-highlight-color:transparent;
 }
 button.ctrl:hover{background:rgba(255,255,255,0.13)}
-.sl-row{display:flex;flex-direction:column;align-items:center;gap:4px;padding:2px 0}
-.sl-label{font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:0.04em;text-transform:uppercase}
+.sl-row{display:flex;flex-direction:column;align-items:center;gap:5px;padding:2px 0}
+.sl-label{font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.06em;text-transform:uppercase}
 input[type=range]{
   -webkit-appearance:none;
-  width:min(280px,75vw);
+  width:min(260px,72vw);
   height:6px;
   border-radius:3px;
   background:rgba(255,255,255,0.15);
@@ -43,13 +51,13 @@ input[type=range]{
 }
 input[type=range]::-webkit-slider-thumb{
   -webkit-appearance:none;
-  width:24px;height:24px;
+  width:26px;height:26px;
   border-radius:50%;
   background:rgba(255,255,255,0.85);
   cursor:pointer;
 }
 input[type=range]::-moz-range-thumb{
-  width:24px;height:24px;
+  width:26px;height:26px;
   border-radius:50%;
   background:rgba(255,255,255,0.85);
   border:none;cursor:pointer;
@@ -62,13 +70,14 @@ input[type=range]::-moz-range-thumb{
   text-align:center;
 }
 </style>
-
+</head>
+<body>
 <div class="wrap">
   <div class="row">
     <div class="grp">
-      <button class="btn on" id="sInf" onclick="setShape('infinity')">∞ Infinity</button>
-      <button class="btn" id="sTri" onclick="setShape('triangle')">△ Triangle</button>
-      <button class="btn" id="sStar" onclick="setShape('star')">⛤ Star</button>
+      <button class="btn on" id="sInf" onclick="setShape('infinity')">&#x221E; Infinity</button>
+      <button class="btn" id="sTri" onclick="setShape('triangle')">&#x25B3; Triangle</button>
+      <button class="btn" id="sStar" onclick="setShape('star')">&#x26E4; Star</button>
     </div>
   </div>
 
@@ -82,7 +91,7 @@ input[type=range]::-moz-range-thumb{
     </div>
   </div>
   <div class="row">
-    <span class="bdg" id="bdg">∞ · F minor · 432 Hz · root weighted</span>
+    <span class="bdg" id="bdg">&#x221E; &middot; F minor &middot; 432 Hz &middot; root weighted</span>
   </div>
   <div class="row">
     <div class="grp">
@@ -96,20 +105,19 @@ input[type=range]::-moz-range-thumb{
 const cv=document.getElementById('c');
 const ctx=cv.getContext('2d');
 
-// Responsive canvas size
 function resize(){
-  const maxW=Math.min(window.innerWidth, 600);
-  cv.style.width=maxW+'px';
-  cv.style.height=(maxW*0.72)+'px';
+  const maxW=Math.min(window.innerWidth-24,580);
   cv.width=maxW;
   cv.height=Math.round(maxW*0.72);
+  cv.style.width=maxW+'px';
+  cv.style.height=Math.round(maxW*0.72)+'px';
   rebuild();
 }
+window.addEventListener('resize',resize);
 
 let W,H,CX,CY;
 function getDims(){W=cv.width;H=cv.height;CX=W/2;CY=H/2-2;}
-
-window.addEventListener('resize',()=>{resize();});
+function sc(v){getDims();return v*(W/560);}
 
 let running=true,AC=null,spdMult=1,lt=null;
 let curShape='infinity',curMode='weighted',balls=[];
@@ -124,8 +132,11 @@ function chime(freq,isAnchor){
     o.type='sine';o.frequency.value=freq*r;
     if(i===1)o.frequency.setTargetAtTime(freq*2.756*0.998,t+0.01,0.4);
     const gv=[0.6,0.28,isAnchor?0.35:0.18][i];
-    g.gain.setValueAtTime(0.001,t);g.gain.linearRampToValueAtTime(vol*gv,t+0.014);g.gain.exponentialRampToValueAtTime(0.001,t+dec);
-    o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+dec+1);
+    g.gain.setValueAtTime(0.001,t);
+    g.gain.linearRampToValueAtTime(vol*gv,t+0.014);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dec);
+    o.connect(g);g.connect(AC.destination);
+    o.start(t);o.stop(t+dec+1);
   });
 }
 
@@ -166,20 +177,21 @@ const AB_WEIGHTED=[
   {name:'F3', freq:174.61*RA,color:'#7b5ea7',spd:0.0078,radius:7},
   {name:'C#4',freq:277.18*RA,color:'#e040fb',spd:0.0062,radius:7},
 ];
-function getNotes(){if(curShape==='star')return curMode==='poly'?AB_POLY:AB_WEIGHTED;return curMode==='poly'?FM_POLY:FM_WEIGHTED;}
+function getNotes(){
+  if(curShape==='star')return curMode==='poly'?AB_POLY:AB_WEIGHTED;
+  return curMode==='poly'?FM_POLY:FM_WEIGHTED;
+}
 
-// Scale factor relative to a 560px base canvas
-function sc(v){return v*(W/560);}
-
-// --- Infinity ---
 function lemn(t){
   getDims();
   const A=sc(138),s=Math.sin(t),co=Math.cos(t),d=1+s*s;
   return{x:CX+A*co/d,y:CY+A*s*co/d};
 }
-function nearCross(t){const n=((t%(Math.PI*2))+Math.PI*2)%(Math.PI*2);return n<0.18||n>Math.PI*2-0.18||(n>Math.PI-0.18&&n<Math.PI+0.18);}
+function nearCross(t){
+  const n=((t%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+  return n<0.18||n>Math.PI*2-0.18||(n>Math.PI-0.18&&n<Math.PI+0.18);
+}
 
-// --- Triangle ---
 function triPts(){
   getDims();
   const R=sc(145);
@@ -193,9 +205,13 @@ function triPos(u){
   const tp=triPts(),uu=((u%1)+1)%1,seg=uu*3,s=Math.floor(seg),f=seg-s,a=tp[s],b=tp[(s+1)%3];
   return{x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f};
 }
-function triCorner(u){const uu=((u%1)+1)%1,seg=uu*3,f=seg-Math.floor(seg);if(f<0.02)return Math.floor(seg)%3;if(f>0.98)return(Math.floor(seg)+1)%3;return -1;}
+function triCorner(u){
+  const uu=((u%1)+1)%1,seg=uu*3,f=seg-Math.floor(seg);
+  if(f<0.02)return Math.floor(seg)%3;
+  if(f>0.98)return(Math.floor(seg)+1)%3;
+  return -1;
+}
 
-// --- Pentagram ---
 function pentTips(){
   getDims();
   const R=sc(148),tips=[];
@@ -211,12 +227,19 @@ function pentPos(u){
   const lines=pentLines(),uu=((u%1)+1)%1,seg=uu*5,s=Math.floor(seg)%5,f=seg-Math.floor(seg),L=lines[s];
   return{x:L.a.x+(L.b.x-L.a.x)*f,y:L.a.y+(L.b.y-L.a.y)*f};
 }
-function pentTipId(u){const uu=((u%1)+1)%1,seg=uu*5,s=Math.floor(seg)%5,f=seg-Math.floor(seg);if(f<0.04)return s;return -1;}
+function pentTipId(u){
+  const uu=((u%1)+1)%1,seg=uu*5,s=Math.floor(seg)%5,f=seg-Math.floor(seg);
+  if(f<0.04)return s;
+  return -1;
+}
 
 function makeBalls(src){
   getDims();
   const scale=W/560;
-  return src.map(n=>({...n,t:0,trail:[],glow:0,labelAlpha:0,lastPt:-1,r:Math.max(5,Math.round(n.radius*scale))}));
+  return src.map(n=>({
+    ...n,t:0,trail:[],glow:0,labelAlpha:0,lastPt:-1,
+    r:Math.max(5,Math.round(n.radius*scale))
+  }));
 }
 function rebuild(){getDims();balls=makeBalls(getNotes());lt=null;}
 
@@ -366,7 +389,7 @@ function frame(ts){
     if(ball.labelAlpha>0){
       const fs=Math.max(10,sc(ball.isAnchor?13:11));
       ctx.save();ctx.globalAlpha=ball.labelAlpha;
-      ctx.font=`500 ${fs}px sans-serif`;
+      ctx.font='500 '+fs+'px sans-serif';
       ctx.fillStyle=ball.color;ctx.textAlign='center';
       ctx.fillText(ball.name,pos.x,pos.y-ball.r-sc(6)-(1-ball.labelAlpha)*sc(14));
       ctx.restore();
@@ -387,3 +410,5 @@ window.setShape('infinity');
 window.setMode('weighted');
 requestAnimationFrame(frame);
 </script>
+</body>
+</html>
