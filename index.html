@@ -3,16 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Polyrhythm Instrument</title>
+<title>Pondering</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:#0a0a1a}
-body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:12px}
-canvas{display:block;margin:0 auto;touch-action:none}
+html,body{height:100%;background:#05060a;overflow:hidden}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:12px;position:relative}
+.spacer{flex:0 0 40px}
+
+/* ============================================================
+   BACKGROUND
+   To use the gradient (default):  leave as-is
+   To use your own PNG image:      comment out the gradient line
+                                   uncomment the background-image line
+                                   add your file (e.g. bg.png) in the same folder
+   ============================================================ */
 .wrap{
-  background: url('pondering.png') center/cover no-repeat;
-  border-radius:16px;padding:12px 0 18px;width:100%;max-width:620px;
+  background:linear-gradient(135deg,#0a0a1a 0%,#1a0a2e 50%,#0a1a2e 100%);
+  /* background:url('bg.png') center/cover no-repeat; */
+
+  border-radius:16px;
+  border:0.5px solid rgba(255,255,255,0.1);
+  padding:12px 0 18px;
+  width:100%;
+  max-width:620px;
+  position:relative;
+  z-index:2;
+  box-shadow:0 8px 40px rgba(0,0,0,0.6);
 }
+
+/* Matrix rain canvas — fixed behind everything */
+#rain-canvas{
+  position:fixed;top:0;left:0;
+  width:100vw;height:100vh;
+  z-index:0;pointer-events:none;
+}
+
+/* Pondering title — semi-transparent blue italic */
+.title{
+  font-family:'Courier New', 'Lucida Console', monospace;
+  font-style:italic;
+  font-size:22px;
+  font-weight:400;
+  letter-spacing:0.12em;
+  color:rgba(110, 165, 220, 0.32);
+  text-shadow:0 0 14px rgba(90,150,220,0.22), 0 0 30px rgba(70,130,200,0.12);
+  text-align:center;
+  padding:0 0 50px;
+  margin-top:-40px;
+  position:relative;
+  z-index:2;
+  user-select:none;
+}
+@media (max-width:480px){
+  .title{font-size:18px;padding:0 0 40px;margin-top:-30px}
+}
+
+canvas#c{display:block;margin:0 auto;touch-action:none;position:relative;z-index:2}
+
 .row{display:flex;gap:8px;justify-content:center;align-items:center;padding:7px 10px;flex-wrap:wrap}
 .grp{display:flex;border-radius:24px;border:0.5px solid rgba(255,255,255,0.15);overflow:hidden}
 .btn{
@@ -48,12 +95,19 @@ input[type=range]::-moz-range-thumb{
   background:rgba(255,255,255,0.06);text-align:center;
 }
 #hint{
-  font-size:13px;color:rgba(255,255,255,0.5);text-align:center;
+  font-size:13px;color:rgba(255,255,255,0.55);text-align:center;
   padding:4px 0 6px;transition:opacity 1s;
 }
 </style>
 </head>
 <body>
+
+<!-- Matrix rain background -->
+<canvas id="rain-canvas"></canvas>
+
+<!-- Title above the polyrhythm box -->
+<h1 class="title">Pondering</h1>
+
 <div class="wrap">
   <div class="row">
     <div class="grp">
@@ -83,6 +137,61 @@ input[type=range]::-moz-range-thumb{
 </div>
 
 <script>
+// ============ MATRIX RAIN ============
+(function(){
+  var rc = document.getElementById('rain-canvas');
+  var rctx = rc.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var fontSize = 16;
+  var columns, drops;
+  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*+-=[]{}|;:<>?/!～！￥（）【】';
+
+  function sizeRain() {
+    rc.width  = window.innerWidth  * dpr;
+    rc.height = window.innerHeight * dpr;
+    rc.style.width  = window.innerWidth  + 'px';
+    rc.style.height = window.innerHeight + 'px';
+    rctx.setTransform(1,0,0,1,0,0);
+    rctx.scale(dpr, dpr);
+    columns = Math.floor(window.innerWidth / fontSize);
+    drops = [];
+    for (var i = 0; i < columns; i++) drops[i] = Math.random() * -50;
+  }
+  sizeRain();
+  window.addEventListener('resize', sizeRain);
+
+  var lastDraw = 0;
+  function drawRain(ts) {
+    if (ts - lastDraw < 50) { requestAnimationFrame(drawRain); return; }
+    lastDraw = ts;
+
+    rctx.fillStyle = 'rgba(5, 8, 14, 0.10)';
+    rctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    rctx.font = fontSize + 'px monospace';
+
+    for (var i = 0; i < drops.length; i++) {
+      var text = chars.charAt(Math.floor(Math.random() * chars.length));
+      var x = i * fontSize;
+      var y = drops[i] * fontSize;
+
+      rctx.fillStyle = 'rgba(200, 220, 240, 0.85)';
+      rctx.fillText(text, x, y);
+
+      if (drops[i] > 1) {
+        var tail = chars.charAt(Math.floor(Math.random() * chars.length));
+        rctx.fillStyle = 'rgba(120, 150, 180, 0.45)';
+        rctx.fillText(tail, x, y - fontSize);
+      }
+
+      if (y > window.innerHeight && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    }
+    requestAnimationFrame(drawRain);
+  }
+  requestAnimationFrame(drawRain);
+})();
+
+// ============ POLYRHYTHM INSTRUMENT ============
 var cv  = document.getElementById('c');
 var c2d = cv.getContext('2d');
 var W, H, CX, CY;
@@ -99,27 +208,18 @@ function getDims(){ W=cv.width; H=cv.height; CX=W/2; CY=H/2-2; }
 function sc(v){ return v*(W/560); }
 window.addEventListener('resize', resize);
 
-// ---- AUDIO ----
-// Single global context, created once inside a user gesture
 var AC = null;
 var audioUnlocked = false;
 
 function initAudio() {
   if (audioUnlocked) return;
-  // Create context synchronously inside the gesture handler
-  if (!AC) {
-    AC = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  // Resume synchronously (required for iOS)
+  if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
   AC.resume();
-  // Play a real (but inaudible) tone for 0.001s — iOS needs actual audio scheduled
   var o = AC.createOscillator();
   var g = AC.createGain();
   g.gain.setValueAtTime(0.0001, AC.currentTime);
-  o.connect(g);
-  g.connect(AC.destination);
-  o.start(AC.currentTime);
-  o.stop(AC.currentTime + 0.001);
+  o.connect(g); g.connect(AC.destination);
+  o.start(AC.currentTime); o.stop(AC.currentTime + 0.001);
   audioUnlocked = true;
   var hint = document.getElementById('hint');
   hint.style.opacity = '0';
@@ -129,7 +229,7 @@ function initAudio() {
 function chime(freq, isAnchor) {
   if (!AC || !audioUnlocked) return;
   if (AC.state === 'suspended') AC.resume();
-  var t   = AC.currentTime;
+  var t = AC.currentTime;
   var vol = isAnchor ? 0.22 : 0.14;
   var dec = isAnchor ? 6.0  : 4.5;
   var ratios = [1, 2.756, 0.5];
@@ -143,14 +243,11 @@ function chime(freq, isAnchor) {
     g.gain.setValueAtTime(0.001, t);
     g.gain.linearRampToValueAtTime(vol * gains[i], t + 0.014);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
-    o.connect(g);
-    g.connect(AC.destination);
-    o.start(t);
-    o.stop(t + dec + 0.2);
+    o.connect(g); g.connect(AC.destination);
+    o.start(t); o.stop(t + dec + 0.2);
   }
 }
 
-// ---- NOTES ----
 var RA = 432/440;
 var FM_POLY = [
   {name:'F3', freq:174.61*RA,color:'#ff4e6a',spd:0.0070,radius:8},
@@ -193,136 +290,67 @@ function getNotes(){
   return curMode==='poly'?FM_POLY:FM_WEIGHTED;
 }
 
-// ---- STATE ----
 var running=true, spdMult=1, lt=null;
 var curShape='infinity', curMode='weighted', balls=[];
 
-// ---- GEOMETRY ----
-function lemn(t){
-  var A=sc(138),s=Math.sin(t),co=Math.cos(t),d=1+s*s;
-  return{x:CX+A*co/d, y:CY+A*s*co/d};
-}
-function nearCross(t){
-  var n=((t%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
-  return n<0.18||n>Math.PI*2-0.18||(n>Math.PI-0.18&&n<Math.PI+0.18);
-}
-function getTriPts(){
-  var R=sc(145);
-  return[
-    {x:CX, y:CY-R},
-    {x:CX+R*Math.sin(2*Math.PI/3), y:CY-R*Math.cos(2*Math.PI/3)},
-    {x:CX+R*Math.sin(4*Math.PI/3), y:CY-R*Math.cos(4*Math.PI/3)},
-  ];
-}
-function triPos(u){
-  var tp=getTriPts(),uu=((u%1)+1)%1,seg=uu*3,s=Math.floor(seg),f=seg-s,a=tp[s],b=tp[(s+1)%3];
-  return{x:a.x+(b.x-a.x)*f, y:a.y+(b.y-a.y)*f};
-}
-function triCorner(u){
-  var uu=((u%1)+1)%1,seg=uu*3,f=seg-Math.floor(seg);
-  if(f<0.02) return Math.floor(seg)%3;
-  if(f>0.98) return (Math.floor(seg)+1)%3;
-  return -1;
-}
-function getPentTips(){
-  var R=sc(148),tips=[];
-  for(var i=0;i<5;i++){
-    var a=-Math.PI/2+i*2*Math.PI/5;
-    tips.push({x:CX+R*Math.cos(a), y:CY+R*Math.sin(a)});
-  }
-  return tips;
-}
-function getPentLines(){
-  var tips=getPentTips(),ord=[0,2,4,1,3],lines=[];
-  for(var i=0;i<5;i++) lines.push({a:tips[ord[i]],b:tips[ord[(i+1)%5]]});
-  return lines;
-}
-function pentPos(u){
-  var lines=getPentLines(),uu=((u%1)+1)%1,seg=uu*5,s=Math.floor(seg)%5,f=seg-Math.floor(seg),L=lines[s];
-  return{x:L.a.x+(L.b.x-L.a.x)*f, y:L.a.y+(L.b.y-L.a.y)*f};
-}
-function pentTipId(u){
-  var uu=((u%1)+1)%1,seg=uu*5,s=Math.floor(seg)%5,f=seg-Math.floor(seg);
-  return f<0.04?s:-1;
-}
+function lemn(t){var A=sc(138),s=Math.sin(t),co=Math.cos(t),d=1+s*s;return{x:CX+A*co/d,y:CY+A*s*co/d};}
+function nearCross(t){var n=((t%(Math.PI*2))+Math.PI*2)%(Math.PI*2);return n<0.18||n>Math.PI*2-0.18||(n>Math.PI-0.18&&n<Math.PI+0.18);}
+function getTriPts(){var R=sc(145);return[{x:CX,y:CY-R},{x:CX+R*Math.sin(2*Math.PI/3),y:CY-R*Math.cos(2*Math.PI/3)},{x:CX+R*Math.sin(4*Math.PI/3),y:CY-R*Math.cos(4*Math.PI/3)}];}
+function triPos(u){var tp=getTriPts(),uu=((u%1)+1)%1,seg=uu*3,s=Math.floor(seg),f=seg-s,a=tp[s],b=tp[(s+1)%3];return{x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f};}
+function triCorner(u){var uu=((u%1)+1)%1,seg=uu*3,f=seg-Math.floor(seg);if(f<0.02)return Math.floor(seg)%3;if(f>0.98)return(Math.floor(seg)+1)%3;return -1;}
+function getPentTips(){var R=sc(148),tips=[];for(var i=0;i<5;i++){var a=-Math.PI/2+i*2*Math.PI/5;tips.push({x:CX+R*Math.cos(a),y:CY+R*Math.sin(a)});}return tips;}
+function getPentLines(){var tips=getPentTips(),ord=[0,2,4,1,3],lines=[];for(var i=0;i<5;i++)lines.push({a:tips[ord[i]],b:tips[ord[(i+1)%5]]});return lines;}
+function pentPos(u){var lines=getPentLines(),uu=((u%1)+1)%1,seg=uu*5,s=Math.floor(seg)%5,f=seg-Math.floor(seg),L=lines[s];return{x:L.a.x+(L.b.x-L.a.x)*f,y:L.a.y+(L.b.y-L.a.y)*f};}
+function pentTipId(u){var uu=((u%1)+1)%1,seg=uu*5,s=Math.floor(seg)%5,f=seg-Math.floor(seg);return f<0.04?s:-1;}
 
-// ---- BALLS ----
 function makeBalls(src){
   var scale=W/560;
   return src.map(function(n){
-    return{
-      name:n.name,freq:n.freq,color:n.color,spd:n.spd,
-      isAnchor:n.isAnchor||false,
-      r:Math.max(5,Math.round(n.radius*scale)),
-      t:0,trail:[],glow:0,labelAlpha:0,lastPt:-1
-    };
+    return{name:n.name,freq:n.freq,color:n.color,spd:n.spd,isAnchor:n.isAnchor||false,r:Math.max(5,Math.round(n.radius*scale)),t:0,trail:[],glow:0,labelAlpha:0,lastPt:-1};
   });
 }
-function rebuild(){ getDims(); balls=makeBalls(getNotes()); lt=null; }
+function rebuild(){getDims();balls=makeBalls(getNotes());lt=null;}
 
-// ---- UI ----
 function setShape(s){
   curShape=s;
-  document.getElementById('sInf').classList.toggle('on',  s==='infinity');
-  document.getElementById('sTri').classList.toggle('on',  s==='triangle');
-  document.getElementById('sStar').classList.toggle('on', s==='star');
-  updateBadge(); rebuild();
+  document.getElementById('sInf').classList.toggle('on',s==='infinity');
+  document.getElementById('sTri').classList.toggle('on',s==='triangle');
+  document.getElementById('sStar').classList.toggle('on',s==='star');
+  updateBadge();rebuild();
 }
 function setMode(m){
   curMode=m;
-  document.getElementById('tPoly').classList.toggle('on',   m==='poly');
-  document.getElementById('tWeight').classList.toggle('on', m==='weighted');
-  updateBadge(); rebuild();
+  document.getElementById('tPoly').classList.toggle('on',m==='poly');
+  document.getElementById('tWeight').classList.toggle('on',m==='weighted');
+  updateBadge();rebuild();
 }
 function updateBadge(){
-  var sh  = curShape==='infinity'?'∞':curShape==='triangle'?'△':'⛤';
-  var key = curShape==='star'?'G# major':'F minor';
-  var mo  = curMode==='poly'?'polyrhythm':'root weighted';
-  document.getElementById('bdg').textContent = sh+' · '+key+' · 432 Hz · '+mo;
+  var sh=curShape==='infinity'?'∞':curShape==='triangle'?'△':'⛤';
+  var key=curShape==='star'?'G# major':'F minor';
+  var mo=curMode==='poly'?'polyrhythm':'root weighted';
+  document.getElementById('bdg').textContent=sh+' · '+key+' · 432 Hz · '+mo;
 }
 
-// Wire every interactive element with touchstart+click
-// touchstart fires first on mobile and is synchronous — perfect for AudioContext
 function wire(id, action) {
   var el = document.getElementById(id);
   var didTouch = false;
-  el.addEventListener('touchstart', function(e) {
-    didTouch = true;
-    initAudio();   // must be called synchronously in touchstart
-    action();
-  }, { passive: true });
-  el.addEventListener('click', function() {
-    if (didTouch) { didTouch = false; return; } // suppress ghost click
-    initAudio();
-    action();
-  });
+  el.addEventListener('touchstart', function(){didTouch=true;initAudio();action();}, { passive: true });
+  el.addEventListener('click', function(){if(didTouch){didTouch=false;return;}initAudio();action();});
 }
-
-wire('sInf',    function(){ setShape('infinity'); });
-wire('sTri',    function(){ setShape('triangle'); });
-wire('sStar',   function(){ setShape('star'); });
-wire('tPoly',   function(){ setMode('poly'); });
-wire('tWeight', function(){ setMode('weighted'); });
-wire('pb',      function(){
-  running=!running;
-  document.getElementById('pb').textContent=running?'Pause':'Play';
-  lt=null;
-});
-
-// Also wire the hint div and canvas as fallback tap targets
+wire('sInf', function(){setShape('infinity');});
+wire('sTri', function(){setShape('triangle');});
+wire('sStar', function(){setShape('star');});
+wire('tPoly', function(){setMode('poly');});
+wire('tWeight', function(){setMode('weighted');});
+wire('pb', function(){running=!running;document.getElementById('pb').textContent=running?'Pause':'Play';lt=null;});
 wire('hint', function(){});
-cv.addEventListener('touchstart', function(){ initAudio(); }, { passive: true });
-cv.addEventListener('click',      function(){ initAudio(); });
+cv.addEventListener('touchstart', function(){initAudio();}, { passive: true });
+cv.addEventListener('click', function(){initAudio();});
+document.getElementById('spd').addEventListener('input', function(){spdMult=+this.value;});
 
-document.getElementById('spd').addEventListener('input', function(){ spdMult=+this.value; });
-
-// ---- DRAW ----
 function drawInfinity(){
-  c2d.save(); c2d.beginPath();
-  for(var i=0;i<=400;i++){
-    var p=lemn((i/400)*Math.PI*2);
-    i===0?c2d.moveTo(p.x,p.y):c2d.lineTo(p.x,p.y);
-  }
+  c2d.save();c2d.beginPath();
+  for(var i=0;i<=400;i++){var p=lemn((i/400)*Math.PI*2);i===0?c2d.moveTo(p.x,p.y):c2d.lineTo(p.x,p.y);}
   c2d.strokeStyle='rgba(180,180,255,0.28)';c2d.lineWidth=sc(2);c2d.stroke();c2d.restore();
   [0,Math.PI].forEach(function(ct){
     var p=lemn(ct),r=sc(20);
@@ -361,11 +389,9 @@ function drawStar(){
   });
 }
 function drawLegend(){
-  if(curMode!=='weighted') return;
+  if(curMode!=='weighted')return;
   var isStar=curShape==='star';
-  var items=isStar
-    ?[{label:'G# — root',color:'#ff4e6a'},{label:'D# — fifth',color:'#ff8c42'},{label:'C# — slow',color:'#e040fb'}]
-    :[{label:'F  — root',color:'#ff4e6a'},{label:'C  — fifth',color:'#ff8c42'},{label:'C# — slow',color:'#e040fb'}];
+  var items=isStar?[{label:'G# — root',color:'#ff4e6a'},{label:'D# — fifth',color:'#ff8c42'},{label:'C# — slow',color:'#e040fb'}]:[{label:'F  — root',color:'#ff4e6a'},{label:'C  — fifth',color:'#ff8c42'},{label:'C# — slow',color:'#e040fb'}];
   var fs=Math.max(10,sc(11));
   items.forEach(function(item,i){
     var x=sc(18),y=H-sc(52)+i*sc(17);
@@ -375,11 +401,10 @@ function drawLegend(){
   });
 }
 
-// ---- LOOP ----
 function frame(ts){
   if(!running){requestAnimationFrame(frame);return;}
   getDims();
-  var dt=lt?Math.min((ts-lt)/1000,0.05):0.016; lt=ts;
+  var dt=lt?Math.min((ts-lt)/1000,0.05):0.016;lt=ts;
   c2d.clearRect(0,0,W,H);
 
   var cc=curShape==='star'?'rgba(255,200,60,0.06)':curMode==='weighted'?'rgba(255,80,80,0.06)':'rgba(160,130,255,0.07)';
@@ -387,36 +412,31 @@ function frame(ts){
   cg.addColorStop(0,cc);cg.addColorStop(1,'rgba(0,0,0,0)');
   c2d.fillStyle=cg;c2d.fillRect(0,0,W,H);
 
-  if(curShape==='infinity')      drawInfinity();
-  else if(curShape==='triangle') drawTriangle();
-  else                           drawStar();
+  if(curShape==='infinity')drawInfinity();
+  else if(curShape==='triangle')drawTriangle();
+  else drawStar();
 
   balls.forEach(function(ball){
     var pos,crossed=false;
-
     if(curShape==='infinity'){
-      var prev=ball.t;
-      ball.t+=ball.spd*spdMult*dt*60;
-      pos=lemn(ball.t);
-      crossed=nearCross(ball.t)&&!nearCross(prev);
-
+      var prev=ball.t;ball.t+=ball.spd*spdMult*dt*60;
+      pos=lemn(ball.t);crossed=nearCross(ball.t)&&!nearCross(prev);
     } else if(curShape==='triangle'){
       ball.t=((ball.t+ball.spd*spdMult*dt*60*(1/(Math.PI*2)))+1)%1;
       pos=triPos(ball.t);
       var ci=triCorner(ball.t);
       if(ci!==-1&&ci!==ball.lastPt){ball.lastPt=ci;crossed=true;}
-      if(ci===-1) ball.lastPt=-1;
-
+      if(ci===-1)ball.lastPt=-1;
     } else {
       ball.t=((ball.t+ball.spd*spdMult*dt*60*(1/(Math.PI*2)))+1)%1;
       pos=pentPos(ball.t);
       var ti=pentTipId(ball.t);
       if(ti!==-1&&ti!==ball.lastPt){ball.lastPt=ti;crossed=true;}
-      if(ti===-1) ball.lastPt=-1;
+      if(ti===-1)ball.lastPt=-1;
     }
 
     ball.trail.push({x:pos.x,y:pos.y});
-    if(ball.trail.length>24) ball.trail.shift();
+    if(ball.trail.length>24)ball.trail.shift();
     ball.trail.forEach(function(pt,j){
       var a=(j/ball.trail.length)*(ball.isAnchor?0.5:0.38);
       c2d.beginPath();c2d.arc(pt.x,pt.y,ball.r*0.42,0,Math.PI*2);
@@ -424,7 +444,7 @@ function frame(ts){
     });
 
     if(crossed){ball.glow=1;ball.labelAlpha=1;chime(ball.freq,ball.isAnchor);}
-    ball.glow      =Math.max(0,ball.glow      -dt*2.2);
+    ball.glow=Math.max(0,ball.glow-dt*2.2);
     ball.labelAlpha=Math.max(0,ball.labelAlpha-dt*0.8);
 
     if(ball.glow>0){
@@ -458,7 +478,6 @@ function frame(ts){
   requestAnimationFrame(frame);
 }
 
-// ---- START ----
 resize();
 setShape('infinity');
 setMode('weighted');
