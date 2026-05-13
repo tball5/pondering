@@ -6,7 +6,14 @@
 <title>Pondering</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:#05060a;overflow:hidden}
+html,body{height:100%;overflow:hidden}
+body{
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(70, 120, 190, 0.45) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 75%, rgba(30, 70, 140, 0.5) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(45, 90, 160, 0.3) 0%, transparent 70%),
+    linear-gradient(160deg, #1a3a6b 0%, #234a82 40%, #1c4078 70%, #15315e 100%);
+}
 body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:12px;position:relative}
 .spacer{flex:0 0 40px}
 
@@ -29,13 +36,6 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
   position:relative;
   z-index:2;
   box-shadow:0 8px 40px rgba(0,0,0,0.6);
-}
-
-/* Matrix rain canvas — fixed behind everything */
-#rain-canvas{
-  position:fixed;top:0;left:0;
-  width:100vw;height:100vh;
-  z-index:0;pointer-events:none;
 }
 
 /* Pondering title — semi-transparent blue italic */
@@ -102,9 +102,6 @@ input[type=range]::-moz-range-thumb{
 </head>
 <body>
 
-<!-- Matrix rain background -->
-<canvas id="rain-canvas"></canvas>
-
 <!-- Title above the polyrhythm box -->
 <h1 class="title">Pondering</h1>
 
@@ -137,60 +134,6 @@ input[type=range]::-moz-range-thumb{
 </div>
 
 <script>
-// ============ MATRIX RAIN ============
-(function(){
-  var rc = document.getElementById('rain-canvas');
-  var rctx = rc.getContext('2d');
-  var dpr = window.devicePixelRatio || 1;
-  var fontSize = 16;
-  var columns, drops;
-  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*+-=[]{}|;:<>?/!～！￥（）【】';
-
-  function sizeRain() {
-    rc.width  = window.innerWidth  * dpr;
-    rc.height = window.innerHeight * dpr;
-    rc.style.width  = window.innerWidth  + 'px';
-    rc.style.height = window.innerHeight + 'px';
-    rctx.setTransform(1,0,0,1,0,0);
-    rctx.scale(dpr, dpr);
-    columns = Math.floor(window.innerWidth / fontSize);
-    drops = [];
-    for (var i = 0; i < columns; i++) drops[i] = Math.random() * -50;
-  }
-  sizeRain();
-  window.addEventListener('resize', sizeRain);
-
-  var lastDraw = 0;
-  function drawRain(ts) {
-    if (ts - lastDraw < 50) { requestAnimationFrame(drawRain); return; }
-    lastDraw = ts;
-
-    rctx.fillStyle = 'rgba(5, 8, 14, 0.10)';
-    rctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    rctx.font = fontSize + 'px monospace';
-
-    for (var i = 0; i < drops.length; i++) {
-      var text = chars.charAt(Math.floor(Math.random() * chars.length));
-      var x = i * fontSize;
-      var y = drops[i] * fontSize;
-
-      rctx.fillStyle = 'rgba(200, 220, 240, 0.85)';
-      rctx.fillText(text, x, y);
-
-      if (drops[i] > 1) {
-        var tail = chars.charAt(Math.floor(Math.random() * chars.length));
-        rctx.fillStyle = 'rgba(120, 150, 180, 0.45)';
-        rctx.fillText(tail, x, y - fontSize);
-      }
-
-      if (y > window.innerHeight && Math.random() > 0.975) drops[i] = 0;
-      drops[i]++;
-    }
-    requestAnimationFrame(drawRain);
-  }
-  requestAnimationFrame(drawRain);
-})();
-
 // ============ POLYRHYTHM INSTRUMENT ============
 var cv  = document.getElementById('c');
 var c2d = cv.getContext('2d');
