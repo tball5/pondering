@@ -6,14 +6,7 @@
 <title>Pondering</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
-body{
-  background:
-    radial-gradient(ellipse at 30% 20%, rgba(70, 120, 190, 0.45) 0%, transparent 50%),
-    radial-gradient(ellipse at 75% 75%, rgba(30, 70, 140, 0.5) 0%, transparent 55%),
-    radial-gradient(ellipse at 50% 50%, rgba(45, 90, 160, 0.3) 0%, transparent 70%),
-    linear-gradient(160deg, #1a3a6b 0%, #234a82 40%, #1c4078 70%, #15315e 100%);
-}
+html,body{height:100%;background:#0a1428;overflow:hidden}
 body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:12px;position:relative}
 .spacer{flex:0 0 40px}
 
@@ -36,6 +29,13 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
   position:relative;
   z-index:2;
   box-shadow:0 8px 40px rgba(0,0,0,0.6);
+}
+
+/* Matrix rain canvas — fixed behind everything */
+#rain-canvas{
+  position:fixed;top:0;left:0;
+  width:100vw;height:100vh;
+  z-index:0;pointer-events:none;
 }
 
 /* Pondering title — semi-transparent blue italic */
@@ -102,6 +102,9 @@ input[type=range]::-moz-range-thumb{
 </head>
 <body>
 
+<!-- Matrix rain background (frozen) -->
+<canvas id="rain-canvas"></canvas>
+
 <!-- Title above the polyrhythm box -->
 <h1 class="title">Pondering</h1>
 
@@ -134,6 +137,65 @@ input[type=range]::-moz-range-thumb{
 </div>
 
 <script>
+// ============ MATRIX RAIN (FROZEN) ============
+(function(){
+  var rc = document.getElementById('rain-canvas');
+  var rctx = rc.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var fontSize = 16;
+  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*+-=[]{}|;:<>?/!～！￥（）【】';
+
+  function drawFrozenRain() {
+    rc.width  = window.innerWidth  * dpr;
+    rc.height = window.innerHeight * dpr;
+    rc.style.width  = window.innerWidth  + 'px';
+    rc.style.height = window.innerHeight + 'px';
+    rctx.setTransform(1,0,0,1,0,0);
+    rctx.scale(dpr, dpr);
+
+    // Clear with a deep blue base (matches the reference image)
+    rctx.fillStyle = '#15315e';
+    rctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+    var columns = Math.floor(window.innerWidth / fontSize);
+    rctx.font = fontSize + 'px monospace';
+
+    // For each column, draw a static stream of characters at random length
+    for (var i = 0; i < columns; i++) {
+      var x = i * fontSize;
+      // Each column gets a random start point and length so it looks like a frozen moment
+      var streamStart = Math.random() * window.innerHeight;
+      var streamLength = 10 + Math.floor(Math.random() * 40);
+
+      for (var j = 0; j < streamLength; j++) {
+        var y = streamStart + j * fontSize;
+        if (y < 0 || y > window.innerHeight) continue;
+
+        var ch = chars.charAt(Math.floor(Math.random() * chars.length));
+
+        // Lead character (j=0) — bright blue-white
+        // Tail characters — fade to deeper blue as they go down
+        var fade = 1 - (j / streamLength);
+        if (j === 0) {
+          rctx.fillStyle = 'rgba(140, 190, 240, 0.95)';
+        } else {
+          // Blue gradient from lighter to deeper navy
+          var r = Math.floor(70 + fade * 70);   //  70 → 140
+          var g = Math.floor(120 + fade * 60);  // 120 → 180
+          var b = Math.floor(180 + fade * 40);  // 180 → 220
+          var a = 0.25 + fade * 0.55;
+          rctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+        }
+        rctx.fillText(ch, x, y);
+      }
+    }
+  }
+
+  drawFrozenRain();
+  // Redraw on resize to fill the new dimensions (still frozen — just re-generated)
+  window.addEventListener('resize', drawFrozenRain);
+})();
+
 // ============ POLYRHYTHM INSTRUMENT ============
 var cv  = document.getElementById('c');
 var c2d = cv.getContext('2d');
